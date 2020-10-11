@@ -1,4 +1,4 @@
-project(stepic_cpp_multithreading_final_exam)
+project(Limpopo_exam)
 cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -24,11 +24,11 @@ endif()
 
 find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
 add_executable(final
-    src/final.cxx
-    src/http_server.h
-    src/http_server.cxx
-    src/thread_safe_socket_queue.h
-    src/thread_safe_socket_queue.cxx)
+    exam/exam.cpp
+    exam/http_server.h
+    exam/http_server.cpp
+    exam/thread_safe_socket_queue.h
+    exam/thread_safe_socket_queue.cpp)
 
 target_link_libraries(final
     pthread
