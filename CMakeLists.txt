@@ -24,11 +24,11 @@ endif()
 
 find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
 add_executable(final
-    exam/exam.cpp
+    exam/exam.cxx
     exam/http_server.h
-    exam/http_server.cpp
+    exam/http_server.cxx
     exam/thread_safe_socket_queue.h
-    exam/thread_safe_socket_queue.cpp)
+    exam/thread_safe_socket_queue.cxx)
 
 target_link_libraries(final
     pthread
