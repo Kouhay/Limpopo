@@ -1,3 +1,4 @@
+#include <iostream>
 #include "http_server.h"
 #include <boost/program_options.hpp>
 
