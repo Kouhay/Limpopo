@@ -30,6 +30,6 @@ add_executable(
     exam/thread_safe_socket_queue.h
     exam/thread_safe_socket_queue.cpp)
 
-target_link_libraries(box/final
+target_link_libraries(
     pthread
     ${Boost_PROGRAM_OPTIONS_LIBRARIES})
