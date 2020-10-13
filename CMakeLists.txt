@@ -10,11 +10,11 @@ aux_source_directory(src SRCS)
 
 find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
 add_executable(
-    exam/exam.cxx
+    exam/exam.cpp
     exam/http_server.h
-    exam/http_server.cxx
+    exam/http_server.cpp
     exam/thread_safe_socket_queue.h
-    exam/thread_safe_socket_queue.cxx)
+    exam/thread_safe_socket_queue.cpp)
 
 target_link_libraries(
     ${Boost_PROGRAM_OPTIONS_LIBRARIES})
