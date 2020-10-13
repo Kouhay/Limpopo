@@ -21,7 +21,7 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++98-compat-pedantic")
 endif()
-
+find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
 add_executable(../box/final
     exam/exam.cpp
     exam/http_server.h
