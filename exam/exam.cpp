@@ -1,6 +1,5 @@
 #include "http_server.h"
 #include <boost/program_options.hpp>
-#include <iostream>
 
 namespace po = boost::program_options;
 
