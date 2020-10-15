@@ -2,35 +2,38 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <linux/tcp.h>
 #include <netdb.h>
 #include <sys/sendfile.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
 
 namespace {
 
-  const char status404[] = "HTTP/1.0 404 Not Found\r\n"
-                          "Content-Type: text/html\r\n\r\n";
+const char status404[] = "HTTP/1.0 404 Not Found\r\n"
+                        "Content-Type: text/html\r\n\r\n";
 
-  const char status200[] = "HTTP/1.0 200 OK\r\n"
-                          "Content-Type: text/html\r\n\r\n";
-
+const char status200[] = "HTTP/1.0 200 OK\r\n"
+                               "Content-Type: text/html\r\n\r\n";
 }
 
-HttpServer::HttpServer(const std::string& ip, const std::string& port, std::string& directory, unsigned fluxnumber): m_ip{ std::move(ip) }, m_port{ std::move(port) }
-
+HttpServer::HttpServer(
+    const std::string& directory, 
+    const std::string& address, 
+    const std::string& port, 
+    const unsigned n_threads
+    )
+    : _address{ std::move(address) }
+    , _port{ std::move(port) }
 {
-    if (0 != chroot(directory.c_str())) {
-        perror("chroot");
-        throw std::runtime_error("cannot chroot to specified directory");
+    if (chroot(directory.c_str()) != 0) {
+        throw std::runtime_error("Can't chroot to specified directory");
     }
-    if (0 == daemon(0, 0)) {
-        perror("daemon");
-        throw std::runtime_error("cannot daemonize process");
+    if (daemon(0, 0) == 0) {
+        throw std::runtime_error("CCan't daemonize process");
     }
-    for (auto i = 0u; i < nthreads; ++i) {
+    for (auto i = 0u; i < n_threads; i++) {
         workers.emplace_back([this] { handle_clients(); });
     }
 }
@@ -40,18 +43,17 @@ HttpServer::~HttpServer() {
     }
 }
 
-addrinfo* get_hints(const char* port)
+addrinfo* create_servinfo(const char* port)
 {
     struct addrinfo hints = {};
     struct addrinfo* servinfo;
-    int rv;
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    if ((rv = getaddrinfo(nullptr, port, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+    if (getaddrinfo(nullptr, port, &hints, &servinfo) != 0) {
+        perror("Error while getting addrinfo");
         return nullptr;
     }
     return servinfo;
@@ -60,23 +62,22 @@ addrinfo* get_hints(const char* port)
 int bind_and_listen(const char* port)
 {
     int server_socket = 0;
-    auto servinfo = get_hints(port);
-    auto p = servinfo;
-    for (; p != nullptr; p = p->ai_next) {
+    auto servinfo = create_servinfo(port);
+    for (auto p = servinfo; p != nullptr; p = p->ai_next) {
         if ((server_socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            perror("server: socket");
+            perror("Server socket creation error");
             continue;
         }
 
         const int enable = 1;
         if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
-            perror("setsockopt");
+            perror("Server socket reuse error");
             return 0;
         }
 
         if (bind(server_socket, p->ai_addr, p->ai_addrlen) == -1) {
             close(server_socket);
-            perror("server: bind");
+            perror("Bind server socket error");
             continue;
         }
         break;
@@ -84,19 +85,15 @@ int bind_and_listen(const char* port)
 
     freeaddrinfo(servinfo);
 
-    if (p == nullptr) {
-        fprintf(stderr, "server: failed to bind\n");
+    if (listen(server_socket, 10) == -1) {
+        perror("Error server socket listening");
         return 0;
     }
 
-    if (listen(server_socket, 10) == -1) {
-        perror("listen");
-        return 0;
-    }
     return server_socket;
 }
 
-std::string extractRequestPath(std::string&& buf)
+std::string extract_request_path(std::string&& buf)
 {
     auto newline = buf.find_first_of("\r\n");
     if (newline != std::string::npos) {
@@ -114,10 +111,10 @@ std::string extractRequestPath(std::string&& buf)
     return buf;
 }
 
-bool sendData(int client_socket, const char *data, size_t length)
+bool send_response(int client_socket, const char *data, size_t length)
 {
     if (send(client_socket, data, length, 0) == -1) {
-        perror("send");
+        perror("Send response error");
         return false;
     }
     return true;
@@ -125,36 +122,35 @@ bool sendData(int client_socket, const char *data, size_t length)
 
 void handle_client(int client_socket)
 {
-    const int BUFSIZE = 4096;
-    char buf[BUFSIZE];
-    if (recv(client_socket, buf, BUFSIZE, 0) == -1) {
-        perror("recv");
+    const int buffsize = 4096;
+    char buf[buffsize];
+    if (recv(client_socket, buf, buffsize, 0) == -1) {
+        perror("Reciving socket data error");
     }
-    auto request = extractRequestPath(std::string(buf));
+    auto request = extract_request_path(std::string(buf));
 
     if (!request.empty()) {
         struct stat st;
         auto fd = open(request.c_str(), O_RDONLY);
         if (request == "/" || fd == -1) {
-            sendData(client_socket, status404, sizeof(status404));
+            send_response(client_socket, status404, sizeof(status404));
         } else if (fstat(fd, &st) != 0) {
-            perror("fstat");
+            perror("fstat error");
         } else {
             int enable = 1;
             if (setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int)) == -1) {
-                perror("setsockopt");
+                perror("Server socket reuse error");
             }
-            sendData(client_socket, status200, sizeof(status200) - 1);
+            send_response(client_socket, status200, sizeof(status200) - 1);
             sendfile(client_socket, fd, 0, static_cast<size_t>(st.st_size));
 
             enable = 0;
             if (setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int)) == -1) {
-                perror("setsockopt");
+                perror("Server socket reuse error");
             }
         }
-        if (close(fd) == -1) {
-            perror("close");
-        }
+
+        close(fd);
     }
     close(client_socket);
 }
@@ -162,23 +158,23 @@ void handle_client(int client_socket)
 void HttpServer::handle_clients()
 {
     while (true) {
-        auto client_socket = socketQueue.wait_and_pop();
+        auto client_socket = socket_queue.wait_and_pop();
         handle_client(client_socket);
     }
 }
 
 void HttpServer::run()
 {
-    auto server_socket = bind_and_listen(m_port.c_str());
+    auto server_socket = bind_and_listen(_port.c_str());
     if (server_socket == 0) {
-        throw std::runtime_error("cannot open listening socket");
+        throw std::runtime_error("Can't open listening socket");
     }
     while (true) {
         auto client_socket = accept(server_socket, nullptr, nullptr);
         if (client_socket == -1) {
-            perror("accept");
+            perror("acception error");
             continue;
         }
-        socketQueue.push(client_socket);
+        socket_queue.push(client_socket);
     }
 }
