@@ -1,20 +1,20 @@
 #include "http_server.h"
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <linux/tcp.h>
 #include <netdb.h>
 #include <sys/sendfile.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 namespace {
 
-const char kPage404[] = "HTTP/1.0 404 Not Found\r\n"
+const char error404[] = "HTTP/1.0 404 Not Found\r\n"
                         "Content-Type: text/html\r\n\r\n";
 
-const char kPage200Headers[] = "HTTP/1.0 200 OK\r\n"
+const char error200[] = "HTTP/1.0 200 OK\r\n"
                                "Content-Type: text/html\r\n\r\n";
 
 } // namespace
