@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 {
     theboost::options_description desc("Available options");
     desc.add_options()
-        ("ip,h", theboost::value<std::string>(), "address to listen on")
+        ("address,h", theboost::value<std::string>(), "address")
         ("port,p", theboost::value<std::string>(), "port number")
         ("directory,d", theboost::value<std::string>(), "root directory of server");
 
@@ -16,16 +16,16 @@ int main(int argc, char** argv)
     theboost::store(theboost::parse_command_line(argc, argv, desc), vm);
     theboost::notify(vm);
     
-    if (!vm.count("ip") || !vm.count("directory") || !vm.count("port")) {
+    if (!vm.count("address") || !vm.count("directory") || !vm.count("port")) {
         std::cerr << "Missed arguments\n" << desc << "\n";
         return 1;
     }
 
-    const auto ip = vm["ip"].as<std::string>();
+    const auto address = vm["address"].as<std::string>();
     const auto port = vm["port"].as<std::string>();
     const auto directory = vm["directory"].as<std::string>();
     const unsigned fluxnumber = 5;
 
-    HttpServer server{ ip, port, directory, fluxnumber };
+    HttpServer server{ directory, port, address, fluxnumber };
     server.run();
 }
