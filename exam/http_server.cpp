@@ -11,10 +11,10 @@
 
 namespace {
 
-  const char error404[] = "HTTP/1.0 404 Not Found\r\n"
+  const char status404[] = "HTTP/1.0 404 Not Found\r\n"
                           "Content-Type: text/html\r\n\r\n";
 
-  const char error200[] = "HTTP/1.0 200 OK\r\n"
+  const char status200[] = "HTTP/1.0 200 OK\r\n"
                           "Content-Type: text/html\r\n\r\n";
 
 }
@@ -136,7 +136,7 @@ void handle_client(int client_socket)
         struct stat st;
         auto fd = open(request.c_str(), O_RDONLY);
         if (request == "/" || fd == -1) {
-            sendData(client_socket, error404, sizeof(error404));
+            sendData(client_socket, status404, sizeof(status404));
         } else if (fstat(fd, &st) != 0) {
             perror("fstat");
         } else {
@@ -144,7 +144,7 @@ void handle_client(int client_socket)
             if (setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int)) == -1) {
                 perror("setsockopt");
             }
-            sendData(client_socket, error200, sizeof(error200) - 1);
+            sendData(client_socket, status200, sizeof(status200) - 1);
             sendfile(client_socket, fd, 0, static_cast<size_t>(st.st_size));
 
             enable = 0;
