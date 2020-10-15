@@ -132,12 +132,11 @@ void handle_client(int client_socket)
     }
     auto request = extractRequestPath(std::string(buf));
 
-    // If not, we should send 400 Bad Request
     if (!request.empty()) {
         struct stat st;
         auto fd = open(request.c_str(), O_RDONLY);
         if (request == "/" || fd == -1) {
-            sendData(client_socket, kPage404, sizeof(kPage404));
+            sendData(client_socket, error400, sizeof(error400));
         } else if (fstat(fd, &st) != 0) {
             perror("fstat");
         } else {
@@ -145,7 +144,7 @@ void handle_client(int client_socket)
             if (setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int)) == -1) {
                 perror("setsockopt");
             }
-            sendData(client_socket, kPage200Headers, sizeof(kPage200Headers) - 1);
+            sendData(client_socket, error200, sizeof(error200) - 1);
             sendfile(client_socket, fd, 0, static_cast<size_t>(st.st_size));
 
             enable = 0;
