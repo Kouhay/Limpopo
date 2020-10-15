@@ -1,27 +1,23 @@
-#include "http_server.h"
 #include <iostream>
 #include <boost/program_options.hpp>
+#include "http_server.h"
 
-namespace opt = boost::program_options;
+namespace theboost = boost::program_options;
 
 int main(int argc, char *argv[])
 {  
-	opt::options_description opt_desc("Available options");
-
-	opt_desc.add_options()
-		("ip,h", opt::value<std::string>(), "ip to listen on")
-		("port,p", opt::value<std::string>(), "port number")
-    	("directory,d", opt::value<std::string>(), "server root directory");
-
-	opt::variables_map vmap;
-    opt::store(opt::parse_command_line(argc, argv, opt_desc), vmap);
-    opt::notify(vmap);
-
-	const auto directory = vmap["directory"].as<std::string>();
-    const auto ip = vmap["ip"].as<std::string>();
-    const auto port = vmap["port"].as<std::string>();
-	const unsigned n_threads = 5; 
-    
-    HttpServer server{ directory, ip, port, n_threads };
-    server.run();
+	theboost::options_description opt_desc("Available options");
+	desc.add_options()
+	("address,h", theboost::value<std::string>(), "address")
+	("port,p", theboost::value<std::string>(), "port")
+    	("directory,d", theboost::value<std::string>(), "directory");
+	theboost::variables_map varm;
+   	theboost::store(theboost::parse_command_line(argc, argv, opt_desc), varm);
+    	theboost::notify(varm);
+	const auto directory = varm["directory"].as<std::string>();
+    	const auto address = varm["address"].as<std::string>();
+    	const auto port = varm["port"].as<std::string>();
+	const unsigned fluxnum = 5; 
+    	HttpServer server{ directory, address, port, fluxnum };
+    	server.run();
 }
