@@ -23,13 +23,13 @@ else ()
 endif()
 
 find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
-add_executable(final
+add_executable(/home/box/final
     exam/exam.cpp
     exam/http_server.h
     exam/http_server.cpp
     exam/thread_safe_socket_queue.h
     exam/thread_safe_socket_queue.cpp)
 
-target_link_libraries(final
+target_link_libraries(/home/box/final
     pthread
     ${Boost_PROGRAM_OPTIONS_LIBRARIES})
