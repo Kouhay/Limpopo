@@ -1,5 +1,3 @@
-#pragma once
-
 #include "thread_safe_socket_queue.h"
 #include <string>
 #include <thread>
@@ -7,8 +5,7 @@
 
 class HttpServer {
 public:
-    HttpServer(const std::string& directory, const std::string& address, const std::string& port, unsigned nthreads);
-    ~HttpServer();
+    HttpServer(const std::string& ip, const std::string& port, const std::string& directory, unsigned fluxnumber);~HttpServer();
 
     void __attribute__((noreturn)) run();
 
