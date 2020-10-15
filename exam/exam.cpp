@@ -2,7 +2,6 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
-// use getopt instead ?
 namespace opt = boost::program_options;
 
 int main(int argc, char *argv[])
