@@ -1,7 +1,7 @@
-#include "thread_safe_socket_queue.h"
 #include <string>
 #include <thread>
 #include <vector>
+#include "thread_safe_socket_queue.h"
 
 class HttpServer {
 public:
