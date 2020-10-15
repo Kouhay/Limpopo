@@ -136,7 +136,7 @@ void handle_client(int client_socket)
         struct stat st;
         auto fd = open(request.c_str(), O_RDONLY);
         if (request == "/" || fd == -1) {
-            sendData(client_socket, error400, sizeof(error400));
+            sendData(client_socket, error404, sizeof(error404));
         } else if (fstat(fd, &st) != 0) {
             perror("fstat");
         } else {
