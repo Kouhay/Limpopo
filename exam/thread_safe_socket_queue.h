@@ -4,9 +4,7 @@
 
 class ThreadSafeSocketQueue {
 public:
-    ThreadSafeSocketQueue()
-    {
-    }
+    ThreadSafeSocketQueue(){}
     void push(int socket);
     int wait_and_pop();
 
