@@ -26,6 +26,6 @@ int main(int argc, char** argv)
     const auto directory = vm["directory"].as<std::string>();
     const unsigned fluxnumber = 5;
 
-    HttpServer server{ directory, port, address, fluxnumber };
+    HttpServer server{ directory, address, port, fluxnumber };
     server.run();
 }
