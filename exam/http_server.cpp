@@ -11,17 +11,16 @@
 
 namespace {
 
-const char error404[] = "HTTP/1.0 404 Not Found\r\n"
-                        "Content-Type: text/html\r\n\r\n";
+  const char error404[] = "HTTP/1.0 404 Not Found\r\n"
+                          "Content-Type: text/html\r\n\r\n";
 
-const char error200[] = "HTTP/1.0 200 OK\r\n"
-                               "Content-Type: text/html\r\n\r\n";
+  const char error200[] = "HTTP/1.0 200 OK\r\n"
+                          "Content-Type: text/html\r\n\r\n";
 
-} // namespace
+}
 
-HttpServer::HttpServer(const std::string& directory, const std::string& address, const std::string& port, unsigned nthreads)
-    : m_address{ std::move(address) }
-    , m_port{ std::move(port) }
+HttpServer::HttpServer(const std::string& ip, const std::string& port, std::string& directory, unsigned fluxnumber): m_ip{ std::move(ip) }, m_port{ std::move(port) }
+
 {
     if (0 != chroot(directory.c_str())) {
         perror("chroot");
