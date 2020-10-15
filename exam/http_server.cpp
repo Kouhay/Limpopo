@@ -11,21 +11,14 @@
 
 namespace {
 
-const char status404[] = "HTTP/1.0 404 Not Found\r\n"
+const char RESPONSE_404[] = "HTTP/1.0 404 Not Found\r\n"
                         "Content-Type: text/html\r\n\r\n";
 
-const char status200[] = "HTTP/1.0 200 OK\r\n"
+const char RESPONSE_200[] = "HTTP/1.0 200 OK\r\n"
                                "Content-Type: text/html\r\n\r\n";
 }
 
-HttpServer::HttpServer(
-    const std::string& directory, 
-    const std::string& address, 
-    const std::string& port, 
-    const unsigned n_threads
-    )
-    : _address{ std::move(address) }
-    , _port{ std::move(port) }
+HttpServer::HttpServer(const std::string& directory, const std::string& address, const std::string& port, const unsigned n_threads): _address{ std::move(address) }, _port{ std::move(port) }
 {
     if (chroot(directory.c_str()) != 0) {
         throw std::runtime_error("Can't chroot to specified directory");
@@ -133,7 +126,7 @@ void handle_client(int client_socket)
         struct stat st;
         auto fd = open(request.c_str(), O_RDONLY);
         if (request == "/" || fd == -1) {
-            send_response(client_socket, status404, sizeof(status404));
+            send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
         } else if (fstat(fd, &st) != 0) {
             perror("fstat error");
         } else {
@@ -141,7 +134,7 @@ void handle_client(int client_socket)
             if (setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int)) == -1) {
                 perror("Server socket reuse error");
             }
-            send_response(client_socket, status200, sizeof(status200) - 1);
+            send_response(client_socket, RESPONSE_200, sizeof(RESPONSE_200) - 1);
             sendfile(client_socket, fd, 0, static_cast<size_t>(st.st_size));
 
             enable = 0;
