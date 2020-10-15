@@ -2,30 +2,27 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
-namespace theboost = boost::program_options;
+// use getopt instead ?
+namespace opt = boost::program_options;
 
-int main(int argc, char** argv)
-{
-    theboost::options_description desc("Available options");
-    desc.add_options()
-        ("address,h", theboost::value<std::string>(), "address")
-        ("port,p", theboost::value<std::string>(), "port number")
-        ("directory,d", theboost::value<std::string>(), "root directory of server");
+int main(int argc, char *argv[])
+{  
+	opt::options_description opt_desc("Available options");
 
-    theboost::variables_map vm;
-    theboost::store(theboost::parse_command_line(argc, argv, desc), vm);
-    theboost::notify(vm);
+	opt_desc.add_options()
+		("ip,h", opt::value<std::string>(), "ip to listen on")
+		("port,p", opt::value<std::string>(), "port number")
+    	("directory,d", opt::value<std::string>(), "server root directory");
+
+	opt::variables_map vmap;
+    opt::store(opt::parse_command_line(argc, argv, opt_desc), vmap);
+    opt::notify(vmap);
+
+	const auto directory = vmap["directory"].as<std::string>();
+    const auto ip = vmap["ip"].as<std::string>();
+    const auto port = vmap["port"].as<std::string>();
+	const unsigned n_threads = 5; 
     
-    if (!vm.count("address") || !vm.count("directory") || !vm.count("port")) {
-        std::cerr << "Missed arguments\n" << desc << "\n";
-        return 1;
-    }
-
-    const auto address = vm["address"].as<std::string>();
-    const auto port = vm["port"].as<std::string>();
-    const auto directory = vm["directory"].as<std::string>();
-    const unsigned fluxnumber = 5;
-
-    HttpServer server{ directory, address, port, fluxnumber };
+    HttpServer server{ directory, ip, port, n_threads };
     server.run();
 }
